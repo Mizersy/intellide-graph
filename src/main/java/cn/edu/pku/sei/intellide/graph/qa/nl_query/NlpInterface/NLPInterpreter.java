@@ -51,13 +51,17 @@ public class NLPInterpreter {
      * @param plainText
      * @return 评分排名前20的推理子图
      */
-    public synchronized List<String> pipeline(String plainText) {
+    public synchronized List<Query> pipeline(String plainText) {
         log.debug("开始解析问句的语义.");
         try {
             queries.clear();
             Query query = new TokensGenerator().generator(plainText, languageIdentifier, db);
             new TokenMapping().process(query, languageIdentifier, db);
             offsetMax = query.tokens.size();
+            log.debug("offsetMax: "+query.tokens.size());
+            for(NLPToken token:query.tokens){
+                log.debug(token.text + " : " +String.valueOf(token.mappingList.size()));
+            }
             List<Integer> list = new ArrayList<>();
             for (int i = 0; i < offsetMax; i++) list.add(0);
 
@@ -99,11 +103,13 @@ public class NLPInterpreter {
 
             answers.sort(Comparator.comparing(p -> p.score));
             if (answers.size() > 20) answers = answers.subList(0, 20);
+            /*
             List<String> ans = new ArrayList<>();
             for (Query q : answers) {
                 ans.add(q.cypher);
             }
-            return ans;
+            */
+            return answers;
         } catch (Exception e) {
             e.printStackTrace();
             return null;

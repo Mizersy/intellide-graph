@@ -102,8 +102,13 @@ public class TokenMapping {
             for (Vertex vertex : graph.getAllVertexes()) {
                 double similar = isSimilar(token.text, vertex.name, "", languageIdentifier);
                 String nn = vertex.name;
-                if (vertex.labels.equals("Method") && nn.charAt(0) >= 'A' && nn.charAt(0) <= 'Z') continue;
-
+                if (token.text.equals("AbstractAnalysisFactory") && similar > 0.8){
+                    log.debug(vertex.labels+" name: "+vertex.name+" similar: "+similar);
+                    if (token.mapping != null) 
+                        log.debug("token.mapping.score: "+String.valueOf(token.mapping.score));
+                }
+                //if (vertex.labels.equals("Method") && nn.charAt(0) >= 'A' && nn.charAt(0) <= 'Z') continue;
+                
                 if (similar > 0.8 && ((token.mapping == null) || (token.mapping != null /*&& similar > token.mapping.score - 0.01*/))) {
                     log.debug("Token [" + token.text + "] can be mapped to Vertex [" + vertex.name + "] with score " + similar);
                     NLPMapping mapping = new NLPVertexMapping(vertex, graphSchema.vertexTypes.get(vertex.labels), token, similar);
@@ -114,11 +119,13 @@ public class TokenMapping {
                     }
                     if (similar < token.mapping.score + 0.01) {
                         token.mappingList.add(mapping);
+                        log.debug("token.mappingList.size(): "+String.valueOf(token.mappingList.size()));
                         continue;
                     }
                     //token.mappingList.clear();
                     token.mapping = mapping;
                     token.mappingList.add(mapping);
+                    log.debug("token.mappingList.size(): "+String.valueOf(token.mappingList.size()));
                     //break;
                 }
             }
@@ -446,6 +453,9 @@ public class TokenMapping {
             }
         }
         for (NLPToken token : query.tokens) {
+            if (token.text.equals("AbstractAnalysisFactory")){
+                log.debug("After TokenMapping,"+token.text + " : " +String.valueOf(token.mappingList.size()));
+            }
             if (token.mappingList.size() == 0) token.nomapping = true;
             else if (token.mappingList.get(0) instanceof NLPNoticeMapping) token.nomapping = true;
 //            else

@@ -2,6 +2,7 @@ package cn.edu.pku.sei.intellide.graph.qa.nl_query;
 
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.NLPInterpreter;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.ir.LuceneIndex;
+import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.Query;
 import cn.edu.pku.sei.intellide.graph.webapp.entity.Neo4jSubGraph;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -51,7 +52,7 @@ public class NLQueryEngine {
         List<Long> nodes = new ArrayList<>();
         List<Long> rels = new ArrayList<>();
         List<Long> retNodes = new ArrayList<>();
-        List<String> cyphers;
+        List<Query> answers;
         String cypherret;
 
         if (queryString.matches("\\d+")) {
@@ -64,9 +65,12 @@ public class NLQueryEngine {
             }
             cypherret = c;
         } else {
-            cyphers = NLPInterpreter.createInstance(db, languageIdentifier).pipeline(queryString);
-            if (cyphers == null || cyphers.size() == 0) return new Neo4jSubGraph(nodes, rels, db);
-            String c = cyphers.get(0);
+            answers = NLPInterpreter.createInstance(db, languageIdentifier).pipeline(queryString);
+            if (answers == null || answers.size() == 0) return new Neo4jSubGraph(nodes, rels, db);
+            for(Query cypherTmp : answers){
+                log.debug("问句语义解析结果：" + cypherTmp.cypher);
+            }
+            String c = answers.get(0).cypher;
             log.debug("问句语义解析结果：" + c);
             String returnT;
             String whereT;
