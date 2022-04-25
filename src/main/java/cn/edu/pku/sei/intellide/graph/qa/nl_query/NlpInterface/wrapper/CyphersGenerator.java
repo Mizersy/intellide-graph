@@ -20,7 +20,7 @@ public class CyphersGenerator {
         String whereText = getWhereCypher();
         String returnText = getReturnCypher();
         if (matchText.equals("") || returnText.equals("")) return "";
-        return matchText + " " + whereText + " " + returnText;
+        return matchText + whereText + "\n " + returnText;
     }
 
     public String getReturnCypher() {
@@ -130,7 +130,7 @@ public class CyphersGenerator {
                 else matchStr += String.format("<-%s-", r);
                 start = start.nextInferNode;
             }
-            matchText += matchStr;
+            matchText += matchStr + "\n";
         }
         return matchText;
     }

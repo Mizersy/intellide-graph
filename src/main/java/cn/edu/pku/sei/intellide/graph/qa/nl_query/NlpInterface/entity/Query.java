@@ -4,6 +4,10 @@ import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.TokenMappi
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.TokenMapping.NLPAttributeSchemaMapping;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.TokenMapping.NLPVertexMapping;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.TokenMapping.NLPVertexSchemaMapping;
+import org.neo4j.graphdb.GraphDatabaseService;
+import lombok.extern.slf4j.Slf4j;
+
+import org.eclipse.core.internal.runtime.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +16,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
+@Slf4j
 public class Query {
     public String text;
     public List<NLPToken> tokens = new ArrayList<>();
@@ -23,6 +30,7 @@ public class Query {
     public String cypher;
     public int rank;
     public String returnType = "node";
+    public boolean alive;
 
     public NLPNode getNodeById(int id) {
         return nodes.get(id);
@@ -49,6 +57,14 @@ public class Query {
             newQuery.tokens.add(token.copy());
         }
         return newQuery;
+    }
+
+    public void printTokenMapping(){
+        log.debug("Query: "+ text);
+        for (NLPToken token : tokens){
+            if (token.mapping == null) continue;
+            log.debug("printTokenMapping "+token.text + " mapValue:" + token.mapping.mapValue + " mapType: " + token.mapping.mapType + " mapVlbel: " + token.mapping.mapLabels);
+        }
     }
 
 }

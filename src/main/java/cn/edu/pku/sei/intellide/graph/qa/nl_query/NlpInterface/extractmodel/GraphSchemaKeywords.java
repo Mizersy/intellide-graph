@@ -26,6 +26,17 @@ public class GraphSchemaKeywords {
         types.put("Mail", new ImmutablePair<>("mailId", "mailId"));
         types.put("MailUser", new ImmutablePair<>("names", "names"));
         types.put("Commit", new ImmutablePair<>("name", "name"));
+
+        //what's pair for?
+        types.put("c_field",new ImmutablePair<>("name", "name"));
+        types.put("c_code_file",new ImmutablePair<>("tailFileName", "fileName"));
+        types.put("Markdown",new ImmutablePair<>("title", "title"));
+        types.put("MarkdownCatalog", new ImmutablePair<String, String>("title", "title") );
+        types.put("MarkdownSection", new ImmutablePair<String, String>("title", "title"));
+        types.put("c_function", new ImmutablePair<String, String>("name", "fullName"));
+        types.put("c_struct", new ImmutablePair<String, String>("name", "name"));
+        types.put("c_variable", new ImmutablePair<String, String>("name", "name"));
+        
     }
 
     public static GraphSchemaKeywords getSingle() {

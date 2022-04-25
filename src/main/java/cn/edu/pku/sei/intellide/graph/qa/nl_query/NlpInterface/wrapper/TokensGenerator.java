@@ -56,7 +56,7 @@ public class TokensGenerator {
                 offset++;
                 token.offset = offset;
                 token.offsetVal = offset;
-                log.debug(token.text +" roffset: "+token.roffset+ " offset: " + token.offset);
+                //log.debug(token.text +" roffset: "+token.roffset+ " offset: " + token.offset);
                 if (token.text.startsWith("TOKEN_")) {
                     List<LuceneSearchResult> l = null;
                     try {

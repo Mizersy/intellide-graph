@@ -126,8 +126,11 @@ public class ExtractModel {
 
         Graph graph = new Graph();
 
+        System.out.println("get in the extractProgramAbstract");
+
         try (Transaction tx = db.beginTx()) {
             for (Node node : db.getAllNodes()) {
+                //System.out.println("There are nodes in the database.");
                 for (Iterator<Label> o_iterator = node.getLabels().iterator(); o_iterator.hasNext(); ) {
                     Label label = o_iterator.next();
                     String node_type = label.name();
@@ -145,7 +148,9 @@ public class ExtractModel {
                     break;
                 }
             }
+            System.out.println("graph size is: " + graph.vertexes.size());
             for (Relationship rel : db.getAllRelationships()) {
+                //System.out.println("There are relationships in the database.");
                 long srcId = rel.getStartNodeId();
                 long dstId = rel.getEndNodeId();
                 String type = rel.getType().name();
@@ -166,6 +171,7 @@ public class ExtractModel {
                     graphSchema.vertexTypes.get(src_type).outcomings.get(type).add(graphSchema.vertexTypes.get(dst_type));
                 }
             }
+            System.out.println("vertexTypes numbers are: "+ graphSchema.vertexTypes.size());
             for (GraphVertexType vertexType : graphSchema.vertexTypes.values()) {
                 for (String type : vertexType.outcomings.keySet()) {
                     for (GraphVertexType dstVertex : vertexType.outcomings.get(type)) {
@@ -174,6 +180,7 @@ public class ExtractModel {
                     }
                 }
             }
+            System.out.println("edgeTypes size is : " + graphSchema.edgeTypes.size());
             for (Set<GraphEdgeType> edgeTypes : graphSchema.edgeTypes.values()) {
                 for (GraphEdgeType edgeType : edgeTypes) {
                     edgeType.start.outcomingsEdges.add(edgeType);

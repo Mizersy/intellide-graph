@@ -14,7 +14,9 @@ public class NLPToken {
     public boolean nomapping = false;
     public long offset = -1;
     public double offsetVal = -1;
-    public double roffset = -1;
+    public long roffset = -1;
+
+    
 
     public NLPToken(String text) {
         this.text = text;

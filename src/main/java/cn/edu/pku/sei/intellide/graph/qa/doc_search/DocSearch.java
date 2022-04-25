@@ -48,29 +48,35 @@ public class DocSearch {
     }
 
     private void createIndex() throws IOException {
-        if (new File(indexDirPath).exists())
+        if (new File(indexDirPath).exists()){
+            System.out.println("Doc Search Index already exist.");
             return;
-        //System.out.println("Creating Doc Search Index ...");
+        }
+            
+        System.out.println("Creating Doc Search Index ...");
         Analyzer analyzer = new StandardAnalyzer();
         Directory directory = new SimpleFSDirectory(new File(indexDirPath).toPath());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter iwriter = new IndexWriter(directory, config);
         try (Transaction tx = db.beginTx()) {
             ResourceIterator<Node> nodes = db.getAllNodes().iterator();
+            int cnt = 0;
             while (nodes.hasNext()) {
                 Node node = nodes.next();
                 String indexStr = getIndexStr(node);
                 if (indexStr == null)
                     continue;
+                cnt++;
                 Document document = new Document();
                 document.add(new StringField(ID_FIELD, "" + node.getId(), Field.Store.YES));
                 document.add(new TextField(CONTENT_FIELD, indexStr, Field.Store.NO));
                 iwriter.addDocument(document);
             }
+            System.out.println("cnt: " + cnt);
             tx.success();
         }
         iwriter.close();
-        //System.out.println("Doc Search Index Created.");
+        System.out.println("Doc Search Index Created.");
     }
 
     public List<Neo4jNode> search(String queryString, String project) throws IOException, ParseException {
@@ -79,11 +85,12 @@ public class DocSearch {
 
     public List<Neo4jNode> search(String queryString, String project, boolean rerank) throws IOException, ParseException {
         List<Neo4jNode> r = search(queryString, project, 100);
+        //System.out.println("r.size(): " + r.size());
         if (rerank){
             r = new KnowledgeBasedRerank(db, project.contains("chinese")?"chinese":"english").rerank(queryString, r);
         }
         if (r.size()<=10){
-            return r.subList(0,10);
+            return r.subList(0,r.size());
         }
         else {
             return r;
@@ -110,13 +117,22 @@ public class DocSearch {
             tx.success();
         }
         List<Neo4jNode> r = new ArrayList<>();
+        System.out.println("indexDirPath is " + indexDirPath);
         Directory directory = new SimpleFSDirectory(new File(indexDirPath).toPath());
+        
+        String[] tmplist = directory.listAll();
+        for (int i = 0;i < tmplist.length;++i) {
+        	System.out.println("directory is " + tmplist[i]);
+        }
+        
+        
         Analyzer analyzer = new StandardAnalyzer();
         ireader = DirectoryReader.open(directory);
         isearcher = new IndexSearcher(ireader);
         parser = new QueryParser(CONTENT_FIELD, analyzer);
         Query query = parser.parse(StringUtils.join(TokenExtractor.tokenization(queryString), " "));
         ScoreDoc[] hits = isearcher.search(query, 1000).scoreDocs;
+        System.out.println("hits.length: " + hits.length);
         try (Transaction tx = db.beginTx()) {
             for (int i = 0; i < hits.length; i++) {
                 Document doc = ireader.document(hits[i].doc);
@@ -159,6 +175,7 @@ public class DocSearch {
                 } else {
                     map.put(StackOverflowExtractor.QUESTION_TITLE, getTitle(node));
                     map.put("html", getHtml(node));
+                    
                     //System.out.println(getHtml(node));
                 }
 
@@ -177,7 +194,8 @@ public class DocSearch {
             return StringUtils.join(TokenExtractor.tokenization((String) node.getProperty(StackOverflowExtractor.QUESTION_BODY)), " ");
         if (node.hasLabel(StackOverflowExtractor.ANSWER))
             return StringUtils.join(TokenExtractor.tokenization((String) node.getProperty(StackOverflowExtractor.ANSWER_BODY)), " ");
-
+        if (node.hasLabel(Label.label("MarkdownSection")))
+            return StringUtils.join(TokenExtractor.tokenization((String) node.getProperty("content")), " ");
         return null;
     }
 
@@ -203,6 +221,11 @@ public class DocSearch {
                 Relationship rel = rels.next();
                 r = getTitle(rel.getStartNode())+"/"+r;
             }*/
+            return r;
+        }
+        if (node.hasLabel(Label.label("MarkdownSection"))){
+            String r = "";
+            r = (String) node.getProperty("title");
             return r;
         }
         return null;
@@ -237,6 +260,11 @@ public class DocSearch {
                 Relationship rel = rels.next();
                 r += getHtml(rel.getEndNode());
             }
+            return r;
+        }
+        if (node.hasLabel(Label.label("MarkdownSection"))){
+            String r = "";
+            r = (String) node.getProperty("content");
             return r;
         }
         return null;

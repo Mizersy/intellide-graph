@@ -38,15 +38,23 @@ public class LinkAllNodes {
     public List<Query> process(Query query) {
         this.query = query;
         queries = new ArrayList<>();
+        //log.debug(" nodes.size(): " + String.valueOf(query.nodes.size()));
         for (int i = 0; i < query.nodes.size() + 10; i++) {
             color[i] = -1;
             prim[i] = 1e10;
         }
+        /*
+        for (int i = 0;i < query.nodes.size();++i) {
+        	log.debug(String.valueOf(i)+ " : " + query.nodes.get(i).token.text+" "+ query.nodes.get(i).token.mapping.mapValue+ " " + query.nodes.get(i).token.mapping.mapLabels + " " + query.nodes.get(i).token.mapping.mapType);
+
+        }
+        */
         for (int i = 0; i < query.nodes.size() + 10; i++)
             for (int j = 0; j < query.nodes.size() + 10; j++)
                 dis[i][j] = 1e10;
         colors = 0;
         coloring();
+        log.debug("color: "+query.nodes.size()  + " to " + colors);
         mst();
         for (int i = 0; i < colors; i++)
             if (prim[i] > 1e9) {
@@ -85,8 +93,10 @@ public class LinkAllNodes {
         if (node1.token.mapping instanceof NLPAttributeSchemaMapping) return 1e10;
         if (node2.token.mapping instanceof NLPAttributeSchemaMapping) return 1e10;
 
-
+        //log.debug("dis:" + node1.id + " "+node1.token.text  + " " + node1.token.mapping.mapType + node1.token.mapping.mapValue + " " + node1.token.mapping.mapLabels );
+        //log.debug(node2.id + " "+node2.token.text  + " " + node2.token.mapping.mapType + node2.token.mapping.mapValue + " " + node2.token.mapping.mapLabels );
         if (node1.token.mapping instanceof NLPVertexSchemaMapping && node2.token.mapping instanceof NLPVertexSchemaMapping) {
+        	//log.debug("get here"+ ((NLPVertexSchemaMapping) node1.token.mapping).vertexType.name + " " +((NLPVertexSchemaMapping) node2.token.mapping).vertexType.name);
             double delta = 10;
             if (node1.token.mapping instanceof NLPVertexMapping && node2.token.mapping instanceof NLPVertexMapping)
                 delta = 20;

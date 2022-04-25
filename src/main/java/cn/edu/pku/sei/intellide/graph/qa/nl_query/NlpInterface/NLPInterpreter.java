@@ -1,5 +1,7 @@
 package cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface;
 
+import cn.edu.pku.sei.intellide.graph.qa.code_search.CnToEnDirectory;
+import cn.edu.pku.sei.intellide.graph.qa.nl_query.NLQueryEngine;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.NLPToken;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.Query;
 import cn.edu.pku.sei.intellide.graph.qa.nl_query.NlpInterface.entity.TokenMapping.NLPVertexSchemaMapping;
@@ -64,15 +66,32 @@ public class NLPInterpreter {
             }
             List<Integer> list = new ArrayList<>();
             for (int i = 0; i < offsetMax; i++) list.add(0);
-
+            //query.printTokenMapping();
+            NLQueryEngine.query_static = query;
+            /*
+            log.debug("before DFS QUERY RESULT BEGIN:================");
+            log.debug(String.valueOf(query.tokens.size()));
+            for (int i = 0;i < query.tokens.size();++i) {
+               // log.debug(String.valueOf(i)+ " : " + query.tokens.get(i).text+" "+query.tokens.get(i).mapping.mapValue+ " " + query.tokens.get(i).mapping.mapLabels + " " + query.tokens.get(i).mapping.mapType);
+    
+            }
+            log.debug("before DFS QUERY RESULT END:================");
+            */
+            log.debug("choose tokens begin.");
             dfs(query, 0, list, 0);
-
+            log.debug("choose tokens finished.");
             int tot = 0;
             List<Query> answers = new ArrayList<>();
+            log.debug("queries.size(): "+String.valueOf(queries.size()));
             for (Query query1 : queries) {
+                //query1.printTokenMapping();
                 if (query1.nodes.size() == 0) continue;
                 List<Query> listq = new ArrayList<>();
+                //log.debug("link Nodes begin");
                 listq.addAll(new LinkAllNodes(languageIdentifier).process(query1));
+                //log.debug("link Nodes finished");
+                //listq.size() always <= 1??? 
+                //log.debug("generate cypher begin");
                 for (Query q : listq) {
                     new Evaluator().evaluate(q);
                     if (q.score < -0.1) continue;
@@ -85,9 +104,13 @@ public class NLPInterpreter {
                         answers.add(q);
                     }
                 }
+                //log.debug("generate cypher end.");
             }
+            //log.debug("generate answers end. the size is"+String.valueOf(answers.size()));
             answers.sort(Comparator.comparing(p -> p.score));
+            //log.debug("answers soted");
             Set<Query> anstmp = new HashSet<>();
+            int cnt =0;  
             for (Query q : answers) {
                 boolean flag = true;
                 for (Query qq : anstmp) {
@@ -97,11 +120,17 @@ public class NLPInterpreter {
                     }
                 }
                 if (flag) anstmp.add(q);
+                /*
+                if (cnt++ % 1000 == 0) {
+                	log.debug(String.valueOf(cnt));
+                }
+                */
             }
             answers.clear();
             answers.addAll(anstmp);
-
+            //log.debug("answers dup deleted");
             answers.sort(Comparator.comparing(p -> p.score));
+            //log.debug("answers soted2");
             if (answers.size() > 20) answers = answers.subList(0, 20);
             /*
             List<String> ans = new ArrayList<>();
@@ -109,6 +138,7 @@ public class NLPInterpreter {
                 ans.add(q.cypher);
             }
             */
+            log.debug("answers return");
             return answers;
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,7 +156,17 @@ public class NLPInterpreter {
                     token.mapping = token.mappingList.get(list.get((int) token.offset));
             }
             Query newquery = query.copyOut();
+            //log.debug(newquery.text+"\n=============");
+            //log.debug(String.valueOf(newquery.nodes.size()));
             new SchemaMapping().mapping(newquery);
+            //log.debug(String.valueOf(newquery.nodes.size()));
+            /*
+            for (int i = 0;i < newquery.nodes.size();++i) {
+                log.debug(String.valueOf(i)+ " : " + newquery.nodes.get(i).token.text+" "+ newquery.nodes.get(i).token.mapping.mapValue+ " " + newquery.nodes.get(i).token.mapping.mapLabels + " " + newquery.nodes.get(i).token.mapping.mapType);
+    
+            }
+            */
+            //log.debug("============================================================");
             List<Query> queries = new EdgeMappingSchema().process(newquery, db);
             this.queries.addAll(queries);
             return;
